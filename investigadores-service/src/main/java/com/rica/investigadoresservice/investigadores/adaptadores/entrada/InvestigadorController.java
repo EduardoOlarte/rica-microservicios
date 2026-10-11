@@ -45,4 +45,10 @@ public class InvestigadorController {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(InvestigadorMapper.aResponse(investigador));
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
+        investigadorService.iniciarEliminacion(id);
+        return ResponseEntity.accepted().build();
+    }
 }

@@ -85,3 +85,18 @@ Antes de mover código, se define el destino de cada paquete y clase actual:
 | `plataforma.ArranqueInformativo`, `SaludoInstitucionalService` | Se descarta. Era una demostración del Tutorial 2 sobre IoC/DI y no aporta valor de negocio real para mantenerla en ambos servicios. |
 
 La duplicación de `compartido` y `plataforma` es una consecuencia del despliegue independiente y de la estrategia Database per Service. Compartir un `@ControllerAdvice` requeriría una librería o un módulo común versionado por separado, es decir, un *shared kernel*. Esa es una decisión arquitectónica real que este corte obliga a considerar, pero queda fuera del alcance de este taller.
+
+# 6. Plan de comunicación entre microservicios
+
+Antes de implementar las seis piezas de comunicación, se identifica el patrón que resuelve cada necesidad y el paso del taller donde se aplica:
+
+| Necesidad | Patrón | Dónde en este taller |
+|---|---|---|
+| Confirmar que un investigador existe antes de registrar una publicación | RPI síncrono - gRPC | Paso 2 |
+| No caer en cascada si `investigadores-service` está lento o caído | Circuit Breaker (Resilience4j) | Paso 3 |
+| Que ningún servicio dependa de una dirección de red fija | Service Registry (Eureka) | Paso 4 |
+| Un único punto de entrada para el frontend | API Gateway | Paso 5 |
+| Notificar que se registró un investigador, sin acoplar al publicador con quien escucha | Domain Event + Transactional Outbox (Kafka) | Paso 6 |
+| Eliminar un investigador y, en consecuencia, marcar sus publicaciones sin una transacción distribuida | Saga (coreografía) | Paso 7 |
+
+Este mapa permite distinguir la necesidad de negocio del mecanismo técnico que la resuelve antes de implementar cada integración.
