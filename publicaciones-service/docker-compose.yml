@@ -1,0 +1,7 @@
+services:
+  rica-mongo:
+    image: mongo:7
+    environment:
+      MONGO_INITDB_DATABASE: rica
+    ports:
+      - "27017:27017"
