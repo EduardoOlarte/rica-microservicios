@@ -1,6 +1,6 @@
 package com.rica.investigadoresservice.investigadores.adaptadores.entrada.mensajeria;
 
-import com.rica.investigadoresservice.investigadores.aplicacion.InvestigadorUseCase;
+import com.rica.investigadoresservice.investigadores.puertos.entrada.InvestigadorUseCase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaListener;
