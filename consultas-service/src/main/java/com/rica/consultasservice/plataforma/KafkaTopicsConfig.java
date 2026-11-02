@@ -14,6 +14,11 @@ public class KafkaTopicsConfig {
     }
 
     @Bean
+    public NewTopic investigadoresRegistradosDlt() {
+        return TopicBuilder.name("investigadores.registrados.DLT").partitions(1).replicas(1).build();
+    }
+
+    @Bean
     public NewTopic investigadoresEnEliminacion() {
         return TopicBuilder.name("investigadores.en-eliminacion").partitions(1).replicas(1).build();
     }
