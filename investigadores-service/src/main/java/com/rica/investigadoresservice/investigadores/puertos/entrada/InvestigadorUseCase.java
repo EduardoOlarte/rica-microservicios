@@ -15,4 +15,8 @@ public interface InvestigadorUseCase {
             String correoInstitucional,
             String grupoInvestigacion
     );
+
+    void iniciarEliminacion(Long id);
+
+    void confirmarEliminacion(String correoInstitucional);
 }

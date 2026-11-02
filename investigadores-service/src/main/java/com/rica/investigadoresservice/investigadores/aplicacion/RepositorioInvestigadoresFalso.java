@@ -52,4 +52,9 @@ class RepositorioInvestigadoresFalso implements RepositorioInvestigadores {
 
         return investigador;
     }
+
+    @Override
+    public void eliminar(Investigador investigador) {
+        almacen.remove(investigador.getId());
+    }
 }
