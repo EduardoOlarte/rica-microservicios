@@ -1,6 +1,5 @@
-
 @echo off
-cd /d C:\Users\eduar\Documents\TempProyects\rica-microservicios\consultas-service
+cd /d "%~dp0..\consultas-service"
 
 echo Configurando Java 25...
 set "JAVA_HOME=C:\Program Files\Java\jdk-25.0.4.1"

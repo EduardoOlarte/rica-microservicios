@@ -2,6 +2,7 @@ package com.rica.publicacionesservice.publicaciones;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
@@ -31,26 +32,31 @@ public class InvestigadorEnEliminacionListener {
 
     @KafkaListener(topics = "investigadores.en-eliminacion")
     public void alIniciarseEliminacion(String mensaje) {
-        String correo = objectMapper.readTree(mensaje)
-                .get("correoInstitucional")
-                .asString();
+        var evento = objectMapper.readTree(mensaje);
+        String correo = evento.get("correoInstitucional").asString();
+        String correlationId = evento.has("correlationId")
+                ? evento.get("correlationId").asString()
+                : "sin-correlacion";
 
-        List<Publicacion> publicaciones =
-                publicacionRepository.findByInvestigadorCorreo(correo);
-        publicaciones.forEach(Publicacion::marcarComoHuerfana);
-        publicacionRepository.saveAll(publicaciones);
-        log.info(
-                "Saga: {} publicaciones de {} marcadas como huérfanas",
-                publicaciones.size(),
-                correo);
+        try (MDC.MDCCloseable ignored = MDC.putCloseable("correlationId", correlationId)) {
+            List<Publicacion> publicaciones =
+                    publicacionRepository.findByInvestigadorCorreo(correo);
+            publicaciones.forEach(Publicacion::marcarComoHuerfana);
+            publicacionRepository.saveAll(publicaciones);
+            log.info(
+                    "Saga: {} publicaciones de {} marcadas como huérfanas",
+                    publicaciones.size(),
+                    correo);
 
-        String confirmacion = objectMapper.writeValueAsString(
-                Map.of(
-                        "correoInstitucional", correo,
-                        "cantidad", publicaciones.size()));
-        kafkaTemplate.send(
-                "publicaciones.marcadas-huerfanas",
-                correo,
-                confirmacion);
+            String confirmacion = objectMapper.writeValueAsString(
+                    Map.of(
+                            "correoInstitucional", correo,
+                            "cantidad", publicaciones.size(),
+                            "correlationId", correlationId));
+            kafkaTemplate.send(
+                    "publicaciones.marcadas-huerfanas",
+                    correo,
+                    confirmacion);
+        }
     }
 }
