@@ -1,4 +1,4 @@
-package com.rica.investigadoresservice.investigadores;
+package com.rica.investigadoresservice.investigadores.adaptadores.entrada.mensajeria;
 
 import com.rica.investigadoresservice.investigadores.dominio.InvestigadorRegistrado;
 import org.slf4j.Logger;
