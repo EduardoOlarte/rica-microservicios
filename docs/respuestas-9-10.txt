@@ -1,0 +1,34 @@
+RESPUESTAS ESCRITAS - TALLERES 9 Y 10
+Proyecto: rica-microservicios
+
+TALLER 9 - DLT Y OBSERVABILIDAD
+
+1. ¿Quién debería enterarse cuando llega un mensaje a la DLT y cómo?
+Debe enterarse el equipo responsable de operaciones y del servicio consumidor, mediante una alerta automática cuando aumente el contador de mensajes en la DLT y un tablero con el tópico, la causa, la hora y el correlationId. Para incidentes importantes también enviaría un correo o notificación al canal del equipo.
+
+2. ¿Cómo se reprocesaría un mensaje después de corregir el error?
+Después de corregir la causa, una herramienta de administración leería el mensaje de la DLT, conservaría sus metadatos y lo reenviaría al tópico original. El reproceso tendría una acción explícita, registro de auditoría e idempotencia para evitar duplicar sus efectos.
+
+3. ¿Cuándo es válido descartar un mensaje de la DLT y quién lo decide?
+Es válido descartarlo cuando se demuestra que es inválido, duplicado, incompatible con el contrato o que su efecto ya fue aplicado por otro mensaje. La decisión debe tomarla el responsable del servicio junto con operaciones, dejando registrada la causa, el correlationId y la autorización.
+
+4. ¿Qué pasa si el mensaje de la DLT es válido pero llegó a destiempo?
+Debe analizarse si todavía conserva valor de negocio: si el evento sigue siendo útil, se reprocesa respetando el orden o la versión necesaria; si ya quedó obsoleto, se marca como expirado y no se aplica. El tablero y los logs con correlationId permiten identificar su antigüedad y relacionarlo con la Saga.
+
+¿Por qué reintentar un mensaje venenoso sin fin es peor?
+Un mensaje venenoso puede bloquear la partición, consumir recursos y generar ruido sin cambiar el resultado, además de retrasar mensajes válidos. Enviarlo a una DLT es mejor porque aísla el fallo, conserva la evidencia para investigarlo y permite que el flujo normal continúe.
+
+
+TALLER 10 - DISCUSIÓN: ¿Y SI NUNCA VUELVE?
+
+1. Si publicaciones-service no pudiera marcar las publicaciones por un error permanente, ¿en qué estado quedaría el investigador y quién se daría cuenta?
+El investigador quedaría en EN_ELIMINACION, porque investigadores-service ya publicó investigadores.en-eliminacion y todavía no recibiría publicaciones.marcadas-huerfanas. Se darían cuenta el equipo de operaciones y el responsable de investigadores-service mediante una alerta por antigüedad, mientras consultas-service mostraría el estado en su modelo de lectura.
+
+2. Diseña una compensación: ¿qué evento publicarías, quién lo consumiría y a qué estado volvería el investigador? ¿Sería idempotente?
+Publicaría investigadores.eliminacion-fallida con el correo, la causa y el correlationId; investigadores-service lo consumiría y devolvería el investigador a ACTIVO, o lo dejaría en un estado de revisión si la compensación no fuera segura. El consumidor sería idempotente usando una clave de evento o correlación registrada, de modo que repetir el evento no aplique dos veces el cambio.
+
+3. ¿Qué métrica y alerta definirías para detectar Sagas atascadas?
+Definiría una métrica que cuente investigadores en EN_ELIMINACION cuya marca de inicio tenga más de diez minutos, además de medir la edad máxima de una Saga pendiente y los mensajes en error o DLT. Activaría una alerta cuando ese conteo sea mayor que cero durante varios minutos y la enlazaría con Actuator, los logs y el correlationId para diagnosticar el caso.
+
+4. ¿Esta Saga conviene coreografiada u orquestada si se le agregaran cuatro pasos más?
+Con cuatro pasos adicionales preferiría una Saga orquestada, porque un coordinador podría controlar el estado, los tiempos de espera, los reintentos y las compensaciones en un solo lugar. La coreografía actual funciona para pocos pasos, pero con más participantes aumentan las dependencias implícitas y resulta más difícil observar y recuperar el flujo.
