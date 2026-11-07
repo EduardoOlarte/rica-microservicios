@@ -100,3 +100,29 @@ Antes de implementar las seis piezas de comunicación, se identifica el patrón 
 | Eliminar un investigador y, en consecuencia, marcar sus publicaciones sin una transacción distribuida | Saga (coreografía) | Paso 7 |
 
 Este mapa permite distinguir la necesidad de negocio del mecanismo técnico que la resuelve antes de implementar cada integración.
+
+# 7. Contenedores y CI
+
+## Dockerfile multi-etapa de Eureka
+
+`eureka-server/Dockerfile` copia primero `pom.xml` para que Docker pueda reutilizar
+la capa de dependencias mientras el código fuente no cambie. Después compila el
+proyecto y copia únicamente el JAR a una imagen final basada en JRE 25; la imagen
+final no contiene Maven, el JDK ni el código fuente. El proceso se ejecuta como el
+usuario no privilegiado `rica` para reducir el impacto de una eventual vulnerabilidad.
+
+## Decisión de almacenamiento
+
+| Tipo de dato | Almacén | Consulta principal | Razón | Costo |
+|---|---|---|---|---|
+| Investigadores | PostgreSQL | Buscar por id o correo | Integridad y transacciones | Migraciones y esquema |
+| Publicaciones | MongoDB | Listar por investigador | Documentos flexibles | Consistencia entre documentos |
+| Proyecciones de consulta | MongoDB | Consultar ficha materializada | Lecturas rápidas y desacopladas | Reproyección de eventos |
+| Eventos pendientes | PostgreSQL | Buscar outbox no publicado | Atomicidad con el agregado | Polling y limpieza |
+| Sesiones temporales | Redis | Obtener por clave con TTL | Expiración y baja latencia | Nueva infraestructura |
+
+RICA ya usa más de una tecnología porque cada servicio tiene necesidades distintas,
+pero no se debe añadir Redis solo por tener otra tecnología. Para datos de negocio
+transaccionales, PostgreSQL bien modelado sigue siendo suficiente; Redis se justifica
+únicamente para datos temporales o lecturas repetitivas donde el TTL y la latencia
+aporten un beneficio medible.
