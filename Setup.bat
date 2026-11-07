@@ -1,0 +1,27 @@
+@echo off
+title Iniciar microservicios RICA
+
+set "BAT_DIR=%~dp0.bats"
+
+echo.
+echo       INICIANDO MICROSERVICIOS
+echo.
+
+start "Docker" cmd /k call "%BAT_DIR%\Run Dockers.bat"
+timeout /t 10 /nobreak >nul
+
+start "Eureka" cmd /k call "%BAT_DIR%\Run Eureka.bat"
+timeout /t 10 /nobreak >nul
+
+start "Investigadores" cmd /k call "%BAT_DIR%\Run Investigadores.bat"
+
+start "Publicaciones" cmd /k call "%BAT_DIR%\Run Publicaciones.bat"
+
+start "CQRS" cmd /k call "%BAT_DIR%\Run CQRS.bat"
+
+start "Gateway" cmd /k call "%BAT_DIR%\Run Gateway.bat"
+
+echo.
+echo Todos los procesos fueron iniciados.
+pause
+

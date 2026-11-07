@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@RestController
+@RestController("investigadorAdaptadorController")
 @RequestMapping("/api/investigadores")
 public class InvestigadorController {
 
@@ -44,5 +44,11 @@ public class InvestigadorController {
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(InvestigadorMapper.aResponse(investigador));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
+        investigadorService.iniciarEliminacion(id);
+        return ResponseEntity.accepted().build();
     }
 }
